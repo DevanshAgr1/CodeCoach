@@ -5,7 +5,7 @@ Run from the project root:  python run.py
 """
 import sys
 import pathlib
-
+import os
 ROOT = pathlib.Path(__file__).parent
 BACKEND = ROOT / "backend"
 
@@ -23,5 +23,9 @@ if __name__ == "__main__":
     print("║        CodeCoach is starting…        ║")
     print("╚══════════════════════════════════════╝")
     print("  Open: http://localhost:8000\n")
-    uvicorn.run("backend.main:app", host="0.0.0.0", port=8000, reload=True,
-                reload_dirs=[str(BACKEND), str(ROOT / "frontend")])
+uvicorn.run(
+    "backend.main:app",
+    host="0.0.0.0",
+    port=int(os.environ.get("PORT", 8000)),
+    reload=False
+)
