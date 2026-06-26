@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>CodeCoach — Competitive Programming Intelligence</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="stylesheet" href="/static/css/style.css"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/chartjs-plugin-zoom/2.0.1/chartjs-plugin-zoom.min.js"></script>
+</head>
+<body>
+<div class="bg-grid"></div>
+
+<header>
+  <div class="logo">
+    <span class="logo-bracket">[</span>
+    <span class="logo-text">CODE<em>COACH</em></span>
+    <span class="logo-bracket">]</span>
+  </div>
+  <p class="tagline">Competitive Programming Intelligence Platform</p>
+</header>
+
+<main>
+
+  <!-- ── 01 PROFILE ── -->
+  <section class="panel" id="panel-input">
+    <div class="panel-header"><span class="panel-num">01</span><h2>Load Profile</h2></div>
+    <div class="input-row">
+      <input id="cf-handle" type="text" placeholder="Codeforces handle…" autocomplete="off"/>
+      <button id="btn-load" onclick="loadProfile()">
+        <span class="btn-label">ANALYZE</span><span class="btn-arrow">→</span>
+      </button>
+    </div>
+    <div id="status-msg" class="status-msg hidden"></div>
+
+    <div id="user-card" class="user-card hidden">
+      <div class="uc-handle" id="uc-handle"></div>
+      <div class="uc-stats">
+        <div class="uc-stat"><span class="uc-label">Rating</span><span class="uc-val" id="uc-rating">—</span></div>
+        <div class="uc-stat"><span class="uc-label">Peak</span><span class="uc-val" id="uc-max-rating">—</span></div>
+        <div class="uc-stat"><span class="uc-label">Rank</span><span class="uc-val" id="uc-rank">—</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── 02 SKILL INTELLIGENCE ── -->
+  <section class="panel hidden" id="panel-skills">
+    <div class="panel-header"><span class="panel-num">02</span><h2>Skill Intelligence</h2></div>
+
+    <div class="topics-grid topics-grid-3">
+      <div class="topic-box weak-box">
+        <h3>⚠ Struggling</h3>
+        <ul id="weak-list"></ul>
+      </div>
+      <div class="topic-box untested-box">
+        <h3>◌ Untested</h3>
+        <ul id="untested-list"></ul>
+      </div>
+      <div class="topic-box strong-box">
+        <h3>✦ Strong</h3>
+        <ul id="strong-list"></ul>
+      </div>
+    </div>
+
+    <h3 class="chart-title">Per-Topic Breakdown</h3>
+    <div class="table-wrap">
+      <table class="skill-table" id="skill-table">
+        <thead>
+          <tr>
+            <th>Topic</th><th>Attempted</th><th>Solved</th><th>Accept %</th>
+            <th>Mastery <span class="info-icon" title="0-100, from three signals: how many you've solved (up to 40pts), your recent accuracy weighted above old results (up to 35pts), and whether you solve above your own rating in this topic (up to 25pts). Weakness shown elsewhere = 100 - Mastery.">ⓘ</span></th>
+            <th>Trend <span class="info-icon" title="Comparing your last 30 days of attempts in this topic to the 30 days before that: rising, falling, steady, inactive (touched before, quiet lately), or untested (never attempted).">ⓘ</span></th>
+          </tr>
+        </thead>
+        <tbody id="skill-table-body"></tbody>
+      </table>
+    </div>
+
+    <h3 class="chart-title">Difficulty-Band Acceptance</h3>
+    <div class="chart-box"><canvas id="chart-bands"></canvas></div>
+  </section>
+
+  <!-- ── 03 TOPIC ACTIVITY TIMELINE ── -->
+  <section class="panel hidden" id="panel-timeline">
+    <div class="panel-header"><span class="panel-num">03</span><h2>Activity Timeline</h2></div>
+    <div class="filter-row">
+      <select id="timeline-tag"><option value="">All Topics</option></select>
+      <button onclick="loadTimeline()">Update</button>
+    </div>
+    <div class="chart-toolbar"><button class="chart-reset-btn" onclick="timelineChart && timelineChart.resetZoom()">⤢ Reset Zoom</button></div>
+    <div class="chart-box"><canvas id="chart-timeline"></canvas></div>
+    <p class="empty-state hidden" id="timeline-empty">No submissions in this window yet — solve a few problems and check back.</p>
+  </section>
+
+  <!-- ── 04 RATING PROGRESSION ── -->
+  <section class="panel hidden" id="panel-rating">
+    <div class="panel-header"><span class="panel-num">04</span><h2>Rating Progression</h2></div>
+    <div class="chart-toolbar"><button class="chart-reset-btn" onclick="ratingChart && ratingChart.resetZoom()">⤢ Reset Zoom</button></div>
+    <div class="chart-box"><canvas id="chart-rating"></canvas></div>
+    <p class="empty-state hidden" id="rating-empty">No rated contests yet — this chart fills in after your first rated round.</p>
+  </section>
+
+  <!-- ── 05 ROADMAP ── -->
+  <section class="panel hidden" id="panel-roadmap">
+    <div class="panel-header"><span class="panel-num">05</span><h2>Roadmap</h2></div>
+
+    <div class="roadmap-head">
+      <div class="roadmap-title" id="roadmap-title">Road to —</div>
+      <div class="roadmap-gap" id="roadmap-gap"></div>
+    </div>
+    <div class="roadmap-bar-track"><div class="roadmap-bar-fill" id="roadmap-bar"></div></div>
+
+    <div class="roadmap-grid">
+      <div class="roadmap-box">
+        <h3>Weekly Plan</h3>
+        <p id="roadmap-plan" class="roadmap-plan-text"></p>
+      </div>
+      <div class="roadmap-box">
+        <h3>Focus Topics — Next Contest</h3>
+        <ul id="roadmap-focus"></ul>
+      </div>
+    </div>
+
+    <h3 class="chart-title">Next 7 Recommended Problems</h3>
+    <div id="roadmap-rec-list" class="rec-list"></div>
+  </section>
+
+  <!-- ── 06 COMPARISON MODE ── -->
+  <section class="panel" id="panel-compare">
+    <div class="panel-header"><span class="panel-num">06</span><h2>Compare Handles</h2></div>
+    <div class="input-row">
+      <input id="compare-a" type="text" placeholder="Your handle…" autocomplete="off"/>
+      <input id="compare-b" type="text" placeholder="Opponent handle…" autocomplete="off"/>
+      <button onclick="runComparison()">Compare</button>
+    </div>
+    <div id="compare-status" class="status-msg hidden"></div>
+
+    <div id="compare-results" class="hidden">
+      <ul id="compare-summary" class="compare-summary"></ul>
+
+      <h3 class="chart-title">Rating Progression (shared contest timeline)</h3>
+      <div class="chart-toolbar"><button class="chart-reset-btn" onclick="compareRatingChart && compareRatingChart.resetZoom()">⤢ Reset Zoom</button></div>
+      <div class="chart-box"><canvas id="chart-compare-rating"></canvas></div>
+      <p class="empty-state hidden" id="compare-rating-empty">Neither handle has any rated contests yet.</p>
+
+      <h3 class="chart-title">Solve Distribution by Difficulty</h3>
+      <div class="chart-box"><canvas id="chart-compare-difficulty"></canvas></div>
+
+      <h3 class="chart-title">Topic Mastery</h3>
+      <div class="table-wrap">
+        <table class="skill-table" id="compare-table">
+          <thead><tr><th>Topic</th><th id="compare-th-a">A</th><th id="compare-th-b">B</th><th>Edge</th></tr></thead>
+          <tbody id="compare-table-body"></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  <span>CodeCoach — Powered by Codeforces API + FastAPI + SQLite</span>
+</footer>
+
+<script src="/static/js/app.js"></script>
+</body>
+</html>
